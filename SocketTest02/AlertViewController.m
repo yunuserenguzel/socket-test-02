@@ -103,6 +103,11 @@
     [self.socket readDataWithTimeout:-1 tag:1];
 }
 
+- (void)socket:(GCDAsyncSocket *)sock didReadPartialDataOfLength:(NSUInteger)partialLength tag:(long)tag
+{
+    NSLog(@"partially read");
+}
+
 -(void)socket:(GCDAsyncSocket *)sock didWriteDataWithTag:(long)tag
 {
     NSLog(@"data written");
@@ -155,6 +160,7 @@
 - (void)socket:(GCDAsyncSocket *)sock didAcceptNewSocket:(GCDAsyncSocket *)newSocket
 {
     [newSocket setDelegate:self delegateQueue:dispatch_get_main_queue()];
+    [newSocket readDataToData:[GCDAsyncSocket ZeroData] withTimeout:-1 tag:1];
     [acceptedSockets addObject:newSocket];
     NSLog(@"new connection accepted!!!!");
     
@@ -163,13 +169,12 @@
 {
     NSString* string = self.chatTextField.text;
     if (string != nil && ![string isEqualToString:@""]) {
-        string = [string stringByAppendingString:@"\r\n"];
-        NSData* data = [string dataUsingEncoding:NSASCIIStringEncoding];
-        [self.socket writeData:data withTimeout:-1 tag:1];
-        [self.socket readDataWithTimeout:-1 tag:1];
-//        for (GCDAsyncSocket* sock in acceptedSockets) {
-//            [sock writeData:data withTimeout:10 tag:1];
-//        }
+//        string = [string stringByAppendingString:@"\r\n"];
+        NSMutableData* data = [[string dataUsingEncoding:NSASCIIStringEncoding] mutableCopy];
+        [data appendData:[GCDAsyncSocket ZeroData]];
+        for (GCDAsyncSocket* sock in acceptedSockets) {
+            [sock writeData:data withTimeout:-1 tag:1];
+        }
     }
 }
 
