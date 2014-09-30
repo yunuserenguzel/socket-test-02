@@ -184,6 +184,14 @@
     }
 }
 
+- (void)socket:(GCDAsyncSocket *)sock didReadData:(NSData *)data withTag:(long)tag
+{
+    [super socket:sock didReadData:data withTag:tag];
+    for (GCDAsyncSocket* sock in acceptedSockets) {
+        [sock readDataWithTimeout:-1 tag:1];
+    }
+}
+
 - (void)createSocketForRoom:(Room *)room
 {
     
