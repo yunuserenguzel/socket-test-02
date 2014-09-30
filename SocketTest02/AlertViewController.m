@@ -91,6 +91,7 @@
 
 - (void)socket:(GCDAsyncSocket *)sock didConnectToHost:(NSString *)host port:(uint16_t)port
 {
+    [sock readDataToData:[GCDAsyncSocket ZeroData] withTimeout:-1 tag:1];
     NSLog(@"successfully connected");
     
 }
@@ -175,6 +176,7 @@
         for (GCDAsyncSocket* sock in acceptedSockets) {
             [sock writeData:data withTimeout:-1 tag:1];
         }
+        [self.socket writeData:data withTimeout:-1 tag:1];
     }
 }
 
