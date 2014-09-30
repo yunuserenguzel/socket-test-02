@@ -52,7 +52,7 @@
 {
     NSString* string = self.chatTextField.text;
     if (string != nil && ![string isEqualToString:@""]) {
-        string = [string stringByAppendingString:@"\r\n"];
+        string = [string stringByAppendingString:@"\n"];
         NSData* data = [string dataUsingEncoding:NSASCIIStringEncoding];
         [self.socket writeData:data withTimeout:-1 tag:1];
     }
@@ -102,6 +102,7 @@
     NSLog(@"%@",data);
     NSString* message = [[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding];
     [[[UIAlertView alloc] initWithTitle:@"Message!" message:message delegate:nil cancelButtonTitle:@"Ok!" otherButtonTitles: nil] show];
+    [self.socket readDataWithTimeout:-1 tag:1];
 }
 
 -(void)socket:(GCDAsyncSocket *)sock didWriteDataWithTag:(long)tag
@@ -167,9 +168,11 @@
     if (string != nil && ![string isEqualToString:@""]) {
         string = [string stringByAppendingString:@"\r\n"];
         NSData* data = [string dataUsingEncoding:NSASCIIStringEncoding];
-        for (GCDAsyncSocket* sock in acceptedSockets) {
-            [sock writeData:data withTimeout:10 tag:1];
-        }
+        [self.socket writeData:data withTimeout:-1 tag:1];
+        [self.socket readDataWithTimeout:-1 tag:1];
+//        for (GCDAsyncSocket* sock in acceptedSockets) {
+//            [sock writeData:data withTimeout:10 tag:1];
+//        }
     }
 }
 
