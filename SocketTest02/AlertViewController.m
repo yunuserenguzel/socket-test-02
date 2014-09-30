@@ -24,16 +24,16 @@
     CGFloat width = 200.0;
     CGFloat height = 50.0;
     CGFloat screenWidth = [UIScreen mainScreen].bounds.size.width;
-    CGFloat screenHeight = [UIScreen mainScreen].bounds.size.height;
+//    CGFloat screenHeight = [UIScreen mainScreen].bounds.size.height;
     
-    self.chatTextField = [[UITextField alloc] initWithFrame:CGRectMake((screenWidth-width)*0.5, screenHeight-150.0, width, height)];
+    self.chatTextField = [[UITextField alloc] initWithFrame:CGRectMake((screenWidth-width)*0.5, 150.0, width, height)];
     self.chatTextField.borderStyle = UITextBorderStyleRoundedRect;
     self.chatTextField.delegate = self;
     self.chatTextField.clearButtonMode = UITextFieldViewModeWhileEditing;
     [self.view addSubview:self.chatTextField];
     
     UIButton* sendButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-    sendButton.frame = CGRectMake((screenWidth-width*0.5)*0.5, screenHeight-70.0, width*0.5, height);
+    sendButton.frame = CGRectMake((screenWidth-width*0.5)*0.5, 220, screenWidth, height);
     [sendButton setTitle:@"Send" forState:UIControlStateNormal];
     [sendButton addTarget:self action:@selector(sendText) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:sendButton];
