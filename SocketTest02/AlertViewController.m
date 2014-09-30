@@ -52,8 +52,12 @@
 
 - (void) sendText
 {
-    NSData* data = [chatTextField.text dataUsingEncoding:NSUTF8StringEncoding];
-    [self.socket writeData:data withTimeout:5 tag:1];
+    NSString* string = chatTextField.text;
+    if (string != nil && ![string isEqualToString:@""]) {
+        string = [string stringByAppendingString:@"\r\n"];
+        NSData* data = [string dataUsingEncoding:NSASCIIStringEncoding];
+        [self.socket writeData:data withTimeout:10 tag:1];
+    }
 }
 
 - (BOOL) textFieldShouldReturn:(UITextField *)textField
