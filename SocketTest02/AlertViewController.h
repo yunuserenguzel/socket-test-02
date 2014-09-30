@@ -14,7 +14,7 @@
 @interface AlertViewController : UIViewController <GCDAsyncSocketDelegate,UITextFieldDelegate>
 
 @property GCDAsyncSocket* socket;
-
+@property UITextField* chatTextField;
 - (void) createSocketForRoom:(Room*)room;
 
 @end

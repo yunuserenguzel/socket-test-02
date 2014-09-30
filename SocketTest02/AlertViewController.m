@@ -17,8 +17,6 @@
 
 @implementation AlertViewController
 {
-    UITextField* chatTextField;
-    NSMutableArray* acceptedSockets;
 }
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -27,12 +25,12 @@
     CGFloat height = 50.0;
     CGFloat screenWidth = [UIScreen mainScreen].bounds.size.width;
     CGFloat screenHeight = [UIScreen mainScreen].bounds.size.height;
-    acceptedSockets = [NSMutableArray new];
-    chatTextField = [[UITextField alloc] initWithFrame:CGRectMake((screenWidth-width)*0.5, screenHeight-150.0, width, height)];
-    chatTextField.borderStyle = UITextBorderStyleRoundedRect;
-    chatTextField.delegate = self;
-    chatTextField.clearButtonMode = UITextFieldViewModeWhileEditing;
-    [self.view addSubview:chatTextField];
+    
+    self.chatTextField = [[UITextField alloc] initWithFrame:CGRectMake((screenWidth-width)*0.5, screenHeight-150.0, width, height)];
+    self.chatTextField.borderStyle = UITextBorderStyleRoundedRect;
+    self.chatTextField.delegate = self;
+    self.chatTextField.clearButtonMode = UITextFieldViewModeWhileEditing;
+    [self.view addSubview:self.chatTextField];
     
     UIButton* sendButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
     sendButton.frame = CGRectMake((screenWidth-width*0.5)*0.5, screenHeight-70.0, width*0.5, height);
@@ -52,7 +50,7 @@
 
 - (void) sendText
 {
-    NSString* string = chatTextField.text;
+    NSString* string = self.chatTextField.text;
     if (string != nil && ![string isEqualToString:@""]) {
         string = [string stringByAppendingString:@"\r\n"];
         NSData* data = [string dataUsingEncoding:NSASCIIStringEncoding];
@@ -90,13 +88,6 @@
     NSLog(@"disconnected");
 }
 
-- (void)socket:(GCDAsyncSocket *)sock didAcceptNewSocket:(GCDAsyncSocket *)newSocket
-{
-    [newSocket setDelegate:self delegateQueue:dispatch_get_main_queue()];
-    [acceptedSockets addObject:newSocket];
-    NSLog(@"new connection accepted!!!!");
-    
-}
 
 - (void)socket:(GCDAsyncSocket *)sock didConnectToHost:(NSString *)host port:(uint16_t)port
 {
@@ -120,9 +111,13 @@
 @end
 
 @implementation AlertHostViewController
-
+{
+    
+    NSMutableArray* acceptedSockets;
+}
 - (void)viewDidLoad {
     [super viewDidLoad];
+    acceptedSockets = [NSMutableArray new];
     // Do any additional setup after loading the view.
 }
 
@@ -154,6 +149,25 @@
                                        failure:^(AFHTTPRequestOperation *operation, NSError *error) {
                                            NSLog(@"%@",operation.responseString);
                                        }];
+}
+
+- (void)socket:(GCDAsyncSocket *)sock didAcceptNewSocket:(GCDAsyncSocket *)newSocket
+{
+    [newSocket setDelegate:self delegateQueue:dispatch_get_main_queue()];
+    [acceptedSockets addObject:newSocket];
+    NSLog(@"new connection accepted!!!!");
+    
+}
+- (void) sendText
+{
+    NSString* string = self.chatTextField.text;
+    if (string != nil && ![string isEqualToString:@""]) {
+        string = [string stringByAppendingString:@"\r\n"];
+        NSData* data = [string dataUsingEncoding:NSASCIIStringEncoding];
+        for (GCDAsyncSocket* sock in acceptedSockets) {
+            [sock writeData:data withTimeout:10 tag:1];
+        }
+    }
 }
 
 - (void)createSocketForRoom:(Room *)room
