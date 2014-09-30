@@ -153,7 +153,7 @@
     NSDictionary *parameters = @{@"host_name":string, @"port":[NSNumber numberWithUnsignedInt:port]};
     
     
-    [[HttpRequestManager sharedInstance] POST:@"http://192.168.1.107:3000/rooms/create.json" parameters:parameters
+    [[HttpRequestManager sharedInstance] POST:@"http://yeg-rooms.herokuapp.com/rooms/create.json" parameters:parameters
                                        success:^(AFHTTPRequestOperation *operation, id responseObject) {
                                            NSLog(@"%@",operation.responseString);
                                        }
