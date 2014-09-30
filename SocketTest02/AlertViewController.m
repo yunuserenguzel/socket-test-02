@@ -18,6 +18,7 @@
 @implementation AlertViewController
 {
     UITextField* chatTextField;
+    NSMutableArray* acceptedSockets;
 }
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -26,7 +27,7 @@
     CGFloat height = 50.0;
     CGFloat screenWidth = [UIScreen mainScreen].bounds.size.width;
     CGFloat screenHeight = [UIScreen mainScreen].bounds.size.height;
-    
+    acceptedSockets = [NSMutableArray new];
     chatTextField = [[UITextField alloc] initWithFrame:CGRectMake((screenWidth-width)*0.5, screenHeight-150.0, width, height)];
     chatTextField.borderStyle = UITextBorderStyleRoundedRect;
     chatTextField.delegate = self;
@@ -87,6 +88,8 @@
 
 - (void)socket:(GCDAsyncSocket *)sock didAcceptNewSocket:(GCDAsyncSocket *)newSocket
 {
+    [newSocket setDelegate:self delegateQueue:dispatch_get_main_queue()];
+    [acceptedSockets addObject:newSocket];
     NSLog(@"new connection accepted!!!!");
     
 }
@@ -107,7 +110,6 @@
 {
     NSLog(@"data written");
 }
-
 
 
 @end
@@ -140,7 +142,7 @@
     NSDictionary *parameters = @{@"host_name":string, @"port":[NSNumber numberWithUnsignedInt:port]};
     
     
-    [[HttpRequestManager sharedInstance] POST:@"http://yeg-rooms.herokuapp.com/rooms/create.json" parameters:parameters
+    [[HttpRequestManager sharedInstance] POST:@"http://192.168.1.107:3000/rooms/create.json" parameters:parameters
                                        success:^(AFHTTPRequestOperation *operation, id responseObject) {
                                            NSLog(@"%@",operation.responseString);
                                        }
