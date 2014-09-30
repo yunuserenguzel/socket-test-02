@@ -52,8 +52,8 @@
 {
     NSString* string = self.chatTextField.text;
     if (string != nil && ![string isEqualToString:@""]) {
-        string = [string stringByAppendingString:@"\n"];
-        NSData* data = [string dataUsingEncoding:NSASCIIStringEncoding];
+        NSMutableData* data = [[string dataUsingEncoding:NSASCIIStringEncoding] mutableCopy];
+        [data appendData:[GCDAsyncSocket ZeroData]];
         [self.socket writeData:data withTimeout:-1 tag:1];
     }
 }
