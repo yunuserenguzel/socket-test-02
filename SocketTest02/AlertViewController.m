@@ -72,8 +72,6 @@
 - (void)createSocketForRoom:(Room *)room
 {
     self.socket = [[GCDAsyncSocket alloc] initWithDelegate:self delegateQueue:dispatch_get_main_queue()];
-
-//    [self.socket readDataToData:[GCDAsyncSocket CRLFData] withTimeout:30.0 tag:0];
     NSError* error;
     if([self.socket connectToHost:room.host onPort:room.port error:&error])
     {
@@ -156,8 +154,7 @@
 
 - (void)socket:(GCDAsyncSocket *)sock didAcceptNewSocket:(GCDAsyncSocket *)newSocket
 {
-//    [newSocket setDelegate:self delegateQueue:dispatch_get_main_queue()];
-    [newSocket readDataToData:[GCDAsyncSocket CRLFData] withTimeout:-1 tag:0];
+    [newSocket setDelegate:self delegateQueue:dispatch_get_main_queue()];
     [acceptedSockets addObject:newSocket];
     NSLog(@"new connection accepted!!!!");
     
