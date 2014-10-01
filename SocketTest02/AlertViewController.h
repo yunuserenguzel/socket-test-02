@@ -8,12 +8,13 @@
 
 #import <UIKit/UIKit.h>
 //#import "AsyncSocket.h"
-#import "GCDAsyncSocket.h"
+//#import "GCDAsyncSocket.h"
+#import "GCDAsyncUdpSocket.h"
 #import "Room.h"
 
-@interface AlertViewController : UIViewController <GCDAsyncSocketDelegate,UITextFieldDelegate>
+@interface AlertViewController : UIViewController <GCDAsyncUdpSocketDelegate,UITextFieldDelegate>
 
-@property GCDAsyncSocket* socket;
+@property GCDAsyncUdpSocket* socket;
 @property UITextField* chatTextField;
 - (void) createSocketForRoom:(Room*)room;
 

@@ -10,6 +10,7 @@
 #import "AFNetworking.h"
 #import "HttpRequestManager.h"
 
+#define FORMAT(format, ...) [NSString stringWithFormat:(format), ##__VA_ARGS__]
 @interface AlertViewController ()
 
 
@@ -17,6 +18,8 @@
 
 @implementation AlertViewController
 {
+    Room* room;
+    long tag;
 }
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -53,16 +56,15 @@
     NSString* string = self.chatTextField.text;
     if (string != nil && ![string isEqualToString:@""]) {
         NSMutableData* data = [[string dataUsingEncoding:NSASCIIStringEncoding] mutableCopy];
-        [data appendData:[GCDAsyncSocket ZeroData]];
-        [self.socket writeData:data withTimeout:-1 tag:1];
+        [self.socket sendData:data withTimeout:-1 tag:tag];
     }
 }
+
 
 - (BOOL) textFieldShouldReturn:(UITextField *)textField
 {
     [self sendText];
     textField.text = @"";
-//    [self.view endEditing:YES];
     return YES;
 }
 
@@ -71,51 +73,62 @@
     // Dispose of any resources that can be recreated.
 }
 
-- (void)createSocketForRoom:(Room *)room
+- (void)createSocketForRoom:(Room *)roo
 {
-    self.socket = [[GCDAsyncSocket alloc] initWithDelegate:self delegateQueue:dispatch_get_main_queue()];
+    room = roo;
+    self.socket = [[GCDAsyncUdpSocket alloc] initWithDelegate:self delegateQueue:dispatch_get_main_queue()];
     NSError* error;
+    if (![self.socket bindToPort:0 error:&error])
+    {
+        NSLog(@"Error binding");
+        return;
+    }
+    if (![self.socket beginReceiving:&error])
+    {
+        NSLog(@"Error receiving");
+        return;
+    }
+
     if([self.socket connectToHost:room.host onPort:room.port error:&error])
     {
-//        NSLog(@"successfully connected error:");
+        NSLog(@"connected");
     }
     else {
-//        NSLog(@"eroor: %@",error);
     }
     NSLog(@"eroor: %@",error);
 }
-
--(void)socketDidDisconnect:(GCDAsyncSocket *)sock withError:(NSError *)err
-{
-    [[[UIAlertView alloc] initWithTitle:@"Alert" message:@"You have disconnected" delegate:nil cancelButtonTitle:@"Ok" otherButtonTitles: nil] show];
-    NSLog(@"disconnected");
-}
-
-
-- (void)socket:(GCDAsyncSocket *)sock didConnectToHost:(NSString *)host port:(uint16_t)port
+- (void)udpSocket:(GCDAsyncUdpSocket *)sock didConnectToAddress:(NSData *)address
 {
     [[[UIAlertView alloc] initWithTitle:@"Success" message:@"You have successfully connected to the room" delegate:nil cancelButtonTitle:@"Ok" otherButtonTitles: nil] show];
-    [sock readDataToData:[GCDAsyncSocket ZeroData] withTimeout:-1 tag:1];
     NSLog(@"successfully connected");
-    
 }
 
-- (void)socket:(GCDAsyncSocket *)sock didReadData:(NSData *)data withTag:(long)tag
+- (void)udpSocket:(GCDAsyncUdpSocket *)sock didNotConnect:(NSError *)error
+{
+    [[[UIAlertView alloc] initWithTitle:@"Alert" message:@"socket did not connect" delegate:nil cancelButtonTitle:@"Ok" otherButtonTitles: nil] show];
+    NSLog(@"socket did not connect");
+}
+-(void)udpSocket:(GCDAsyncUdpSocket *)sock didNotSendDataWithTag:(long)tag dueToError:(NSError *)error
+{
+    NSLog(@"%@",error);
+}
+
+- (void)udpSocket:(GCDAsyncUdpSocket *)sock didReceiveData:(NSData *)data fromAddress:(NSData *)address withFilterContext:(id)filterContext
 {
     NSLog(@"%@",data);
     NSString* message = [[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding];
     [[[UIAlertView alloc] initWithTitle:@"Message!" message:message delegate:nil cancelButtonTitle:@"Ok!" otherButtonTitles: nil] show];
-    [self.socket readDataWithTimeout:-1 tag:1];
+}
+- (void)udpSocket:(GCDAsyncUdpSocket *)sock didSendDataWithTag:(long)tag
+{
+    NSLog(@"data is sent");
 }
 
-- (void)socket:(GCDAsyncSocket *)sock didReadPartialDataOfLength:(NSUInteger)partialLength tag:(long)tag
+- (void)udpSocketDidClose:(GCDAsyncUdpSocket *)sock withError:(NSError *)error
 {
-    NSLog(@"partially read");
-}
-
--(void)socket:(GCDAsyncSocket *)sock didWriteDataWithTag:(long)tag
-{
-    NSLog(@"data written");
+    [[[UIAlertView alloc] initWithTitle:@"Alert" message:@"socket closed" delegate:nil cancelButtonTitle:@"Ok" otherButtonTitles: nil] show];
+    NSLog(@"socket closed");
+    
 }
 
 
@@ -123,7 +136,7 @@
 
 @implementation AlertHostViewController
 {
-    
+    NSMutableSet* addresses;
     NSMutableArray* acceptedSockets;
 }
 - (void)viewDidLoad {
@@ -139,15 +152,23 @@
 
 - (void)createHostSocketWithName:(NSString *)string
 {
-    self.socket = [[GCDAsyncSocket alloc] initWithDelegate:self delegateQueue:dispatch_get_main_queue()];
+    self.socket = [[GCDAsyncUdpSocket alloc] initWithDelegate:self delegateQueue:dispatch_get_main_queue()];
     UInt16 startPort = (UInt16)1285;
     UInt16 endPort = (UInt16)2285;
     UInt16 port;
+    NSError* error;
     for(port=startPort;port<endPort;port++)
     {
-        if([self.socket acceptOnPort:port error:nil])
+        if (![self.socket bindToPort:port error:&error])
         {
+            NSLog(@"error starting server");
             break;
+        }
+        if (![self.socket beginReceiving:&error])
+        {
+            [self.socket close];
+            NSLog(@"begin receiving failed");
+            return;
         }
     }
     NSDictionary *parameters = @{@"host_name":string, @"port":[NSNumber numberWithUnsignedInt:port]};
@@ -161,34 +182,21 @@
                                            NSLog(@"%@",operation.responseString);
                                        }];
 }
-
-- (void)socket:(GCDAsyncSocket *)sock didAcceptNewSocket:(GCDAsyncSocket *)newSocket
-{
-    [newSocket setDelegate:self delegateQueue:dispatch_get_main_queue()];
-    [newSocket readDataToData:[GCDAsyncSocket ZeroData] withTimeout:-1 tag:1];
-    [acceptedSockets addObject:newSocket];
-    NSLog(@"new connection accepted!!!!");
-    
-}
 - (void) sendText
 {
     NSString* string = self.chatTextField.text;
     if (string != nil && ![string isEqualToString:@""]) {
-//        string = [string stringByAppendingString:@"\r\n"];
         NSMutableData* data = [[string dataUsingEncoding:NSASCIIStringEncoding] mutableCopy];
-        [data appendData:[GCDAsyncSocket ZeroData]];
-        for (GCDAsyncSocket* sock in acceptedSockets) {
-            [sock writeData:data withTimeout:-1 tag:1];
+        for (NSData* address in [addresses allObjects]) {
+            [self.socket sendData:data toAddress:address withTimeout:-1 tag:1];
         }
-        [self.socket writeData:data withTimeout:-1 tag:1];
     }
 }
-
-- (void)socket:(GCDAsyncSocket *)sock didReadData:(NSData *)data withTag:(long)tag
+- (void)udpSocket:(GCDAsyncUdpSocket *)sock didReceiveData:(NSData *)data fromAddress:(NSData *)address withFilterContext:(id)filterContext
 {
-    [super socket:sock didReadData:data withTag:tag];
-    for (GCDAsyncSocket* sock in acceptedSockets) {
-        [sock readDataWithTimeout:-1 tag:1];
+    [super udpSocket:sock didReceiveData:data fromAddress:address withFilterContext:filterContext];
+    if(![addresses containsObject:addresses]) {
+        [addresses addObject:address];
     }
 }
 
