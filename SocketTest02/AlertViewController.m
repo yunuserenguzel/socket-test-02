@@ -174,6 +174,8 @@
             break;
         }
     }
+    
+    NSLog(@"port: %d",[self.socket localPort]);
     NSDictionary *parameters = @{@"host_name":string, @"port":[NSNumber numberWithUnsignedInt:port]};
     
     
