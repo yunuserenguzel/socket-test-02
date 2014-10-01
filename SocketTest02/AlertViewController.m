@@ -49,6 +49,7 @@
     if (string != nil && ![string isEqualToString:@""]) {
         NSMutableData* data = [[string dataUsingEncoding:NSUTF8StringEncoding] mutableCopy];
         [self.socket sendData:data toHost:room.host port:room.port withTimeout:-1 tag:tag];
+        tag++;
     }
 }
 
