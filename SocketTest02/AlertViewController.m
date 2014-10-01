@@ -23,23 +23,15 @@
 }
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view.
-//    CGFloat width = 200.0;
+
     CGFloat height = 50.0;
     CGFloat screenWidth = [UIScreen mainScreen].bounds.size.width;
-//    CGFloat screenHeight = [UIScreen mainScreen].bounds.size.height;
     
     self.chatTextField = [[UITextField alloc] initWithFrame:CGRectMake(0, 150.0, screenWidth, height)];
     self.chatTextField.borderStyle = UITextBorderStyleRoundedRect;
     self.chatTextField.delegate = self;
     self.chatTextField.clearButtonMode = UITextFieldViewModeWhileEditing;
     [self.view addSubview:self.chatTextField];
-    
-//    UIButton* sendButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-//    sendButton.frame = CGRectMake(0, 220, screenWidth, height);
-//    [sendButton setTitle:@"Send" forState:UIControlStateNormal];
-//    [sendButton addTarget:self action:@selector(sendText) forControlEvents:UIControlEventTouchUpInside];
-//    [self.view addSubview:sendButton];
     
     UIGestureRecognizer* keyboardTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapped)];
     [self.view addGestureRecognizer:keyboardTapGesture];
@@ -55,11 +47,10 @@
 {
     NSString* string = self.chatTextField.text;
     if (string != nil && ![string isEqualToString:@""]) {
-        NSMutableData* data = [[string dataUsingEncoding:NSASCIIStringEncoding] mutableCopy];
-        [self.socket sendData:data withTimeout:-1 tag:tag];
+        NSMutableData* data = [[string dataUsingEncoding:NSUTF8StringEncoding] mutableCopy];
+        [self.socket sendData:data toHost:room.host port:room.port withTimeout:-1 tag:tag];
     }
 }
-
 
 - (BOOL) textFieldShouldReturn:(UITextField *)textField
 {
@@ -80,26 +71,34 @@
     NSError* error;
     if (![self.socket bindToPort:0 error:&error])
     {
-        NSLog(@"Error binding");
+        NSLog(@"Error while binding = %@",error);
         return;
     }
     if (![self.socket beginReceiving:&error])
     {
-        NSLog(@"Error receiving");
+        NSLog(@"Error while beginning to receive = %@",error);
         return;
     }
 
-    if([self.socket connectToHost:room.host onPort:room.port error:&error])
-    {
-        NSLog(@"connected");
-    }
-    else {
-    }
-    NSLog(@"eroor: %@",error);
+//    if([self.socket connectToHost:room.host onPort:room.port error:&error])
+//    {
+//        NSLog(@"connected");
+//    }
+//    else {
+//    }
 }
 - (void)udpSocket:(GCDAsyncUdpSocket *)sock didConnectToAddress:(NSData *)address
 {
-    [[[UIAlertView alloc] initWithTitle:@"Success" message:@"You have successfully connected to the room" delegate:nil cancelButtonTitle:@"Ok" otherButtonTitles: nil] show];
+    NSString *host = nil;
+    uint16_t port = 0;
+    [GCDAsyncUdpSocket getHost:&host port:&port fromAddress:address];
+
+    [[[UIAlertView alloc] initWithTitle:@"Success"
+                                message:[NSString stringWithFormat:@"You have successfully connected\nHost = %@\nPort = %d", host, port]
+                               delegate:nil
+                      cancelButtonTitle:@"Ok"
+                      otherButtonTitles: nil] show];
+    
     NSLog(@"successfully connected");
 }
 
@@ -128,9 +127,7 @@
 {
     [[[UIAlertView alloc] initWithTitle:@"Alert" message:@"socket closed" delegate:nil cancelButtonTitle:@"Ok" otherButtonTitles: nil] show];
     NSLog(@"socket closed");
-    
 }
-
 
 @end
 
