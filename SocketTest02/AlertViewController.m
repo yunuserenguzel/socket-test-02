@@ -186,7 +186,7 @@
 {
     NSString* string = self.chatTextField.text;
     if (string != nil && ![string isEqualToString:@""]) {
-        NSMutableData* data = [[string dataUsingEncoding:NSASCIIStringEncoding] mutableCopy];
+        NSMutableData* data = [[string dataUsingEncoding:NSUTF8StringEncoding] mutableCopy];
         for (NSData* address in [addresses allObjects]) {
             [self.socket sendData:data toAddress:address withTimeout:-1 tag:1];
         }
