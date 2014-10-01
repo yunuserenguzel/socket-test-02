@@ -115,7 +115,7 @@
 - (void)udpSocket:(GCDAsyncUdpSocket *)sock didReceiveData:(NSData *)data fromAddress:(NSData *)address withFilterContext:(id)filterContext
 {
     NSLog(@"%@",data);
-    NSString* message = [[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding];
+    NSString* message = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
     [[[UIAlertView alloc] initWithTitle:@"Message!" message:message delegate:nil cancelButtonTitle:@"Ok!" otherButtonTitles: nil] show];
 }
 - (void)udpSocket:(GCDAsyncUdpSocket *)sock didSendDataWithTag:(long)tag
