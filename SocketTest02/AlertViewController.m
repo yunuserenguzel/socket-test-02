@@ -161,14 +161,17 @@
     {
         if (![self.socket bindToPort:port error:&error])
         {
-            NSLog(@"error starting server");
-            break;
+            NSLog(@"error starting server: %@",error);
+            continue;
         }
         if (![self.socket beginReceiving:&error])
         {
             [self.socket close];
             NSLog(@"begin receiving failed");
-            return;
+            continue;
+        }
+        else {
+            break;
         }
     }
     NSDictionary *parameters = @{@"host_name":string, @"port":[NSNumber numberWithUnsignedInt:port]};
