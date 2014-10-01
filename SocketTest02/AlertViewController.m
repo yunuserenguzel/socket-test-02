@@ -49,6 +49,7 @@
     if (string != nil && ![string isEqualToString:@""]) {
         NSMutableData* data = [[string dataUsingEncoding:NSUTF8StringEncoding] mutableCopy];
         [self.socket sendData:data toHost:room.host port:room.port withTimeout:-1 tag:tag];
+        tag++;
     }
 }
 
@@ -115,7 +116,7 @@
 - (void)udpSocket:(GCDAsyncUdpSocket *)sock didReceiveData:(NSData *)data fromAddress:(NSData *)address withFilterContext:(id)filterContext
 {
     NSLog(@"%@",data);
-    NSString* message = [[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding];
+    NSString* message = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
     [[[UIAlertView alloc] initWithTitle:@"Message!" message:message delegate:nil cancelButtonTitle:@"Ok!" otherButtonTitles: nil] show];
 }
 - (void)udpSocket:(GCDAsyncUdpSocket *)sock didSendDataWithTag:(long)tag
@@ -188,7 +189,7 @@
 {
     NSString* string = self.chatTextField.text;
     if (string != nil && ![string isEqualToString:@""]) {
-        NSMutableData* data = [[string dataUsingEncoding:NSASCIIStringEncoding] mutableCopy];
+        NSMutableData* data = [[string dataUsingEncoding:NSUTF8StringEncoding] mutableCopy];
         for (NSData* address in [addresses allObjects]) {
             [self.socket sendData:data toAddress:address withTimeout:-1 tag:1];
         }
