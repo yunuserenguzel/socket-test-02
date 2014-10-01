@@ -69,6 +69,9 @@
 {
     room = roo;
     self.socket = [[GCDAsyncUdpSocket alloc] initWithDelegate:self delegateQueue:dispatch_get_main_queue()];
+    [self.socket setIPv4Enabled:YES];
+    [self.socket setPreferIPv4];
+    [self.socket setIPv6Enabled:NO];
     NSError* error;
     if (![self.socket bindToPort:0 error:&error])
     {
@@ -151,6 +154,9 @@
 - (void)createHostSocketWithName:(NSString *)string
 {
     self.socket = [[GCDAsyncUdpSocket alloc] initWithDelegate:self delegateQueue:dispatch_get_main_queue()];
+    [self.socket setIPv4Enabled:YES];
+    [self.socket setPreferIPv4];
+    [self.socket setIPv6Enabled:NO];
     UInt16 startPort = (UInt16)1285;
     UInt16 endPort = (UInt16)2285;
     UInt16 port;
