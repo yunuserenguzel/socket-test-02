@@ -18,6 +18,7 @@
 
 @implementation AlertViewController
 {
+    NSTimer* timer;
     Room* room;
     long tag;
 }
@@ -35,7 +36,7 @@
     
     UIGestureRecognizer* keyboardTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapped)];
     [self.view addGestureRecognizer:keyboardTapGesture];
-
+    
 }
 
 - (void) tapped
@@ -64,14 +65,8 @@
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
-
-- (void)createSocketForRoom:(Room *)roo
+- (void) initializeServer
 {
-    room = roo;
-    self.socket = [[GCDAsyncUdpSocket alloc] initWithDelegate:self delegateQueue:dispatch_get_main_queue()];
-    [self.socket setIPv4Enabled:YES];
-    [self.socket setPreferIPv4];
-    [self.socket setIPv6Enabled:NO];
     NSError* error;
     if (![self.socket bindToPort:0 error:&error])
     {
@@ -83,14 +78,22 @@
         NSLog(@"Error while beginning to receive = %@",error);
         return;
     }
+}
+- (void)createSocketForRoom:(Room *)roo
+{
+    room = roo;
+    self.socket = [[GCDAsyncUdpSocket alloc] initWithDelegate:self delegateQueue:dispatch_get_main_queue()];
+    [self.socket setIPv4Enabled:YES];
+    [self.socket setPreferIPv4];
+    [self.socket setIPv6Enabled:NO];
     
-
-//    if([self.socket connectToHost:room.host onPort:room.port error:&error])
-//    {
-//        NSLog(@"connected");
-//    }
-//    else {
-//    }
+    [self initializeServer];
+    
+    timer = [NSTimer scheduledTimerWithTimeInterval:150
+                                             target:self
+                                           selector:@selector(initializeServer)
+                                           userInfo:nil
+                                            repeats:YES];
 }
 - (void)udpSocket:(GCDAsyncUdpSocket *)sock didConnectToAddress:(NSData *)address
 {
@@ -199,8 +202,8 @@
     NSDictionary *parameters = @{@"host_name":string, @"port":[NSNumber numberWithUnsignedInt:port]};
     
     
-//    [[HttpRequestManager sharedInstance] POST:@"http://yeg-rooms.herokuapp.com/rooms/create.json" parameters:parameters
-     [[HttpRequestManager sharedInstance] POST:@"http://192.168.1.106:3000/rooms/create.json" parameters:parameters
+    [[HttpRequestManager sharedInstance] POST:@"http://yeg-rooms.herokuapp.com/rooms/create.json" parameters:parameters
+//     [[HttpRequestManager sharedInstance] POST:@"http://192.168.1.106:3000/rooms/create.json" parameters:parameters
                                        success:^(AFHTTPRequestOperation *operation, id responseObject) {
                                            NSLog(@"%@",operation.responseString);
                                        }
