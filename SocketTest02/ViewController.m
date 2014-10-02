@@ -29,8 +29,9 @@
     self.tableView.frame = CGRectMake(0, 44.0, self.view.frame.size.width, self.view.frame.size.height);
 
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"Cell"];
-
-    [[HttpRequestManager sharedInstance] GET:@"http://yeg-rooms.herokuapp.com/rooms.json" parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    
+//    [[HttpRequestManager sharedInstance] GET:@"http://yeg-rooms.herokuapp.com/rooms.json" parameters:nil success:^
+     [[HttpRequestManager sharedInstance] GET:@"http://192.168.1.106:3000/rooms.json" parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"%@",operation.responseObject);
         for (NSDictionary* roomDict in [responseObject objectForKey:@"rooms"]) {
             [self.rooms addObject:[Room roomWithName:[roomDict objectForKey:@"name"]
