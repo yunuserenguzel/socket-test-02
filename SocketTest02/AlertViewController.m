@@ -83,6 +83,7 @@
         NSLog(@"Error while beginning to receive = %@",error);
         return;
     }
+    
 
 //    if([self.socket connectToHost:room.host onPort:room.port error:&error])
 //    {
@@ -157,28 +158,43 @@
     [self.socket setIPv4Enabled:YES];
     [self.socket setPreferIPv4];
     [self.socket setIPv6Enabled:NO];
-    UInt16 startPort = (UInt16)1285;
-    UInt16 endPort = (UInt16)2285;
-    UInt16 port;
+//    UInt16 startPort = (UInt16)1285;
+//    UInt16 endPort = (UInt16)2285;
+//    UInt16 port;
     NSError* error;
-    for(port=startPort;port<endPort;port++)
-    {
-        if (![self.socket bindToPort:port error:&error])
-        {
-            NSLog(@"error starting server: %@",error);
-            continue;
-        }
-        if (![self.socket beginReceiving:&error])
-        {
-            [self.socket close];
-            NSLog(@"begin receiving failed");
-            continue;
-        }
-        else {
-            break;
-        }
+    if (![self.socket bindToPort:0 error:&error]) {
+        NSLog(@"error while binding = %@",error);
+        return;
     }
+    if (![self.socket beginReceiving:&error]) {
+        NSLog(@"error while beginning to receive = %@",error);
+        return;
+    }
+//    if (![self.socket enableBroadcast:YES error:&error]) {
+//        NSLog(@"error enabling broadcast = %@",error);
+//        return;
+//    }
+//    for(port=startPort;port<endPort;port++)
+//    {
+//        if (![self.socket bindToPort:port error:&error])
+//        {
+//            NSLog(@"error starting server: %@",error);
+//            continue;
+//        }
+//        if (![self.socket beginReceiving:&error])
+//        {
+//            [self.socket close];
+//            NSLog(@"begin receiving failed");
+//            continue;
+//        }
+//        else {
+//            break;
+//        }
+//    }
     
+    UInt16 port;
+    [GCDAsyncUdpSocket getHost:nil port:&port fromAddress:self.socket.localAddress];
+    NSLog(@"here");
     NSLog(@"port: %d",[self.socket localPort]);
     NSDictionary *parameters = @{@"host_name":string, @"port":[NSNumber numberWithUnsignedInt:port]};
     
