@@ -144,6 +144,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     acceptedSockets = [NSMutableArray new];
+    addresses = [NSMutableSet new];
     // Do any additional setup after loading the view.
 }
 
