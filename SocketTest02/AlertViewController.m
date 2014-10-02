@@ -18,7 +18,6 @@
 
 @implementation AlertViewController
 {
-    NSTimer* timer;
     Room* room;
     long tag;
 }
@@ -83,17 +82,8 @@
 {
     room = roo;
     self.socket = [[GCDAsyncUdpSocket alloc] initWithDelegate:self delegateQueue:dispatch_get_main_queue()];
-    [self.socket setIPv4Enabled:YES];
-    [self.socket setPreferIPv4];
-    [self.socket setIPv6Enabled:NO];
     
     [self initializeServer];
-    
-    timer = [NSTimer scheduledTimerWithTimeInterval:150
-                                             target:self
-                                           selector:@selector(initializeServer)
-                                           userInfo:nil
-                                            repeats:YES];
 }
 - (void)udpSocket:(GCDAsyncUdpSocket *)sock didConnectToAddress:(NSData *)address
 {
